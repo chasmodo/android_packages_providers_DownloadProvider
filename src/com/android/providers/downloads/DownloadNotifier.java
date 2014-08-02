@@ -58,6 +58,8 @@ public class DownloadNotifier {
     private static final int TYPE_ACTIVE = 1;
     private static final int TYPE_WAITING = 2;
     private static final int TYPE_COMPLETE = 3;
+    private static final int TYPE_PAUSED = 4;
+    private static final int TYPE_QUEUED = 5;
 
     private final Context mContext;
     private final NotificationManager mNotifManager;
@@ -155,14 +157,15 @@ public class DownloadNotifier {
             // Show relevant icon
             if (type == TYPE_ACTIVE) {
                 builder.setSmallIcon(android.R.drawable.stat_sys_download);
-            } else if (type == TYPE_WAITING) {
+            } else if (type == TYPE_WAITING || type == TYPE_PAUSED || type == TYPE_QUEUED) {
                 builder.setSmallIcon(android.R.drawable.stat_sys_warning);
             } else if (type == TYPE_COMPLETE) {
                 builder.setSmallIcon(android.R.drawable.stat_sys_download_done);
             }
 
             // Build action intents
-            if (type == TYPE_ACTIVE || type == TYPE_WAITING) {
+            if (type == TYPE_ACTIVE || type == TYPE_WAITING ||
+                    type == TYPE_PAUSED || type == TYPE_QUEUED) {
                 // build a synthetic uri for intent identification purposes
                 final Uri uri = new Uri.Builder().scheme("active-dl").appendPath(tag).build();
                 final Intent intent = new Intent(Constants.ACTION_LIST,
@@ -260,6 +263,12 @@ public class DownloadNotifier {
                         builder.setContentText(
                                 res.getText(R.string.notification_download_complete));
                     }
+                } else if (type == TYPE_PAUSED) {
+                    builder.setContentText(res.getString(R.string.download_paused));
+                    builder.setContentInfo(percentText);
+                } else if (type == TYPE_QUEUED) {
+                    builder.setContentText(res.getString(R.string.download_queued));
+                    builder.setContentInfo(percentText);
                 }
 
                 notif = builder.build();
@@ -285,6 +294,18 @@ public class DownloadNotifier {
                             res.getString(R.string.notification_need_wifi_for_size));
                     inboxStyle.setSummaryText(
                             res.getString(R.string.notification_need_wifi_for_size));
+                } else if (type == TYPE_PAUSED) {
+                    builder.setContentTitle(res.getQuantityString(
+                            R.plurals.notif_summary_paused, cluster.size(), cluster.size()));
+                    builder.setContentText(res.getString(R.string.download_paused));
+                    builder.setContentInfo(percentText);
+                    inboxStyle.setSummaryText(res.getString(R.string.download_paused));
+                } else if (type == TYPE_QUEUED) {
+                    builder.setContentTitle(res.getQuantityString(
+                            R.plurals.notif_summary_queued, cluster.size(), cluster.size()));
+                    builder.setContentText(res.getString(R.string.download_queued));
+                    builder.setContentInfo(percentText);
+                    inboxStyle.setSummaryText(res.getString(R.string.download_queued));
                 }
 
                 notif = inboxStyle.build();
@@ -344,6 +365,10 @@ public class DownloadNotifier {
         } else if (isCompleteAndVisible(info)) {
             // Complete downloads always have unique notifs
             return TYPE_COMPLETE + ":" + info.mId;
+        } else if (isPausedAndVisible(info)) {
+            return TYPE_PAUSED + ":" + info.mPackage;
+        } else if (isQueuedAndVisible(info)) {
+            return TYPE_QUEUED + ":" + info.mPackage;
         } else {
             return null;
         }
@@ -367,5 +392,29 @@ public class DownloadNotifier {
         return Downloads.Impl.isStatusCompleted(download.mStatus) &&
                 (download.mVisibility == VISIBILITY_VISIBLE_NOTIFY_COMPLETED
                 || download.mVisibility == VISIBILITY_VISIBLE_NOTIFY_ONLY_COMPLETION);
+    }
+
+    // add to show paused download into notification.
+    private static boolean isPausedAndVisible(DownloadInfo download) {
+        return isPausedStatus(download.mStatus) &&
+                (download.mVisibility == VISIBILITY_VISIBLE
+                || download.mVisibility == VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+    }
+
+    private static boolean isPausedStatus(int status) {
+        return status == Downloads.Impl.STATUS_PAUSED_BY_USER;
+    }
+
+    // add to show queued download into notification.
+    private static boolean isQueuedAndVisible(DownloadInfo download) {
+        return isQueuedStatus(download.mStatus) &&
+                (download.mVisibility == VISIBILITY_VISIBLE
+                || download.mVisibility == VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+        }
+
+    private static boolean isQueuedStatus(int status) {
+        return status == Downloads.Impl.STATUS_PAUSED_BY_APP ||
+                status == Downloads.Impl.STATUS_WAITING_TO_RETRY ||
+                status == Downloads.Impl.STATUS_WAITING_FOR_NETWORK;
     }
 }

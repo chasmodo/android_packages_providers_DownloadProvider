@@ -229,4 +229,17 @@
     <!-- Representation of download progress percentage when running. [CHAR LIMIT=24] -->
     <string name="download_running_percent">In progress, <xliff:g id="number">%d</xliff:g><xliff:g id="percent">%%</xliff:g></string>
 
+    <string name="download_paused">Paused</string>
+    <plurals name="notif_summary_paused">
+        <item quantity="one">1 file paused</item>
+        <item quantity="other"><xliff:g id="number">%d</xliff:g> files paused</item>
+    </plurals>
+    <string name="download_paused_percent">Paused, <xliff:g id="number">%d</xliff:g><xliff:g id="percent">%%</xliff:g></string>
+
+    <plurals name="notif_summary_queued">
+        <item quantity="one">1 file queued</item>
+        <item quantity="other"><xliff:g id="number">%d</xliff:g> files queued</item>
+    </plurals>
+    <string name="download_queued_percent">Queued, <xliff:g id="number">%d</xliff:g><xliff:g id="percent">%%</xliff:g></string>
+
 </resources>

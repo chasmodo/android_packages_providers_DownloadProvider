@@ -114,6 +114,10 @@ public class DownloadThread implements Runnable {
 
     private volatile boolean mPolicyDirty;
 
+    // If etag returned by server is null, then use this, to make paused download
+    // can be continued from the breakpoint.
+    private final static String QRD_FAKE_ETAG = "qrd_fake_etag";
+
     /**
      * Local changes to {@link DownloadInfo}. These are kept local to avoid
      * racing with the thread that updates based on change notifications.
@@ -655,6 +659,11 @@ public class DownloadThread implements Runnable {
             if (mInfo.mStatus == Downloads.Impl.STATUS_CANCELED || mInfo.mDeleted) {
                 throw new StopRequestException(Downloads.Impl.STATUS_CANCELED, "download canceled");
             }
+            if (mInfo.mStatus == Downloads.Impl.STATUS_PAUSED_BY_USER) {
+                // user pauses the download, here send exception and stop data transfer.
+                throw new StopRequestException(
+                        Downloads.Impl.STATUS_PAUSED_BY_USER, "download paused by user");
+            }
         }
 
         // if policy has been changed, trigger connectivity check
@@ -735,6 +744,9 @@ public class DownloadThread implements Runnable {
         }
 
         mInfoDelta.mETag = conn.getHeaderField("ETag");
+        if (mInfoDelta.mETag == null) {
+            mInfoDelta.mETag = QRD_FAKE_ETAG;
+        }
 
         mInfoDelta.writeToDatabase();
 
@@ -776,7 +788,7 @@ public class DownloadThread implements Runnable {
         conn.setRequestProperty("Accept-Encoding", "identity");
 
         if (resuming) {
-            if (mInfoDelta.mETag != null) {
+            if (mInfoDelta.mETag != null && !mInfoDelta.mETag.equals(QRD_FAKE_ETAG)) {
                 conn.addRequestProperty("If-Match", mInfoDelta.mETag);
             }
             conn.addRequestProperty("Range", "bytes=" + mInfoDelta.mCurrentBytes + "-");
