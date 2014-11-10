@@ -402,7 +402,7 @@ public class DownloadNotifier {
     }
 
     private static boolean isPausedStatus(int status) {
-        return status == Downloads.Impl.STATUS_PAUSED_BY_USER;
+        return status == Downloads.Impl.STATUS_PAUSED_BY_APP;
     }
 
     // add to show queued download into notification.
@@ -413,8 +413,7 @@ public class DownloadNotifier {
         }
 
     private static boolean isQueuedStatus(int status) {
-        return status == Downloads.Impl.STATUS_PAUSED_BY_APP ||
-                status == Downloads.Impl.STATUS_WAITING_TO_RETRY ||
+        return status == Downloads.Impl.STATUS_WAITING_TO_RETRY ||
                 status == Downloads.Impl.STATUS_WAITING_FOR_NETWORK;
     }
 }

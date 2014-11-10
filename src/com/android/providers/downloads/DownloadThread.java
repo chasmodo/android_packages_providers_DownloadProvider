@@ -240,6 +240,7 @@ public class DownloadThread implements Runnable {
             TrafficStats.setThreadStatsTag(TrafficStats.TAG_SYSTEM_DOWNLOAD);
             TrafficStats.setThreadStatsUid(mInfo.mUid);
 
+            checkPausedOrCanceled();
             executeDownload();
 
             mInfoDelta.mStatus = STATUS_SUCCESS;
@@ -343,15 +344,19 @@ public class DownloadThread implements Runnable {
             // response with body.
             HttpURLConnection conn = null;
             try {
+                checkPausedOrCanceled();
                 checkConnectivity();
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setInstanceFollowRedirects(false);
                 conn.setConnectTimeout(DEFAULT_TIMEOUT);
                 conn.setReadTimeout(DEFAULT_TIMEOUT);
 
+                checkPausedOrCanceled();
                 addRequestHeaders(conn, resuming);
 
+                checkPausedOrCanceled();
                 final int responseCode = conn.getResponseCode();
+                checkPausedOrCanceled();
                 switch (responseCode) {
                     case HTTP_OK:
                         if (resuming) {
@@ -359,6 +364,7 @@ public class DownloadThread implements Runnable {
                                     STATUS_CANNOT_RESUME, "Expected partial, but received OK");
                         }
                         parseOkHeaders(conn);
+                        checkPausedOrCanceled();
                         transferData(conn);
                         return;
 
@@ -658,11 +664,6 @@ public class DownloadThread implements Runnable {
             }
             if (mInfo.mStatus == Downloads.Impl.STATUS_CANCELED || mInfo.mDeleted) {
                 throw new StopRequestException(Downloads.Impl.STATUS_CANCELED, "download canceled");
-            }
-            if (mInfo.mStatus == Downloads.Impl.STATUS_PAUSED_BY_USER) {
-                // user pauses the download, here send exception and stop data transfer.
-                throw new StopRequestException(
-                        Downloads.Impl.STATUS_PAUSED_BY_USER, "download paused by user");
             }
         }
 
