@@ -326,7 +326,11 @@ public class DownloadInfo {
         if (mControl == Downloads.Impl.CONTROL_PAUSED) {
             // the download is paused, so it's not going to start
             return false;
+        } else if (mControl == Downloads.Impl.CONTROL_RUN &&
+                mStatus == Downloads.Impl.STATUS_PAUSED_BY_APP) {
+            return true;
         }
+
         switch (mStatus) {
             case 0: // status hasn't been initialized yet, this is a new download
             case Downloads.Impl.STATUS_PENDING: // download is explicit marked as ready to start
@@ -480,7 +484,7 @@ public class DownloadInfo {
                 mTask = new DownloadThread(mContext, mSystemFacade, mNotifier, this);
                 mSubmittedTask = executor.submit(mTask);
             }
-            return isReady;
+            return isReady || mControl == Impl.CONTROL_PAUSED;
         }
     }
 

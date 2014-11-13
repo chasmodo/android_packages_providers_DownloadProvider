@@ -319,11 +319,11 @@ public class DownloadStorageProvider extends DocumentsProvider {
             case DownloadManager.STATUS_PAUSED:
                 if (size != null) {
                     final long percent = progress * 100 / size;
-                    summary = (reason == DownloadManager.PAUSED_BY_USER) ?
+                    summary = (reason == DownloadManager.PAUSED_BY_APP) ?
                             getContext().getString(R.string.download_paused_percent, percent) :
                             getContext().getString(R.string.download_queued_percent, percent);
                 } else {
-                    summary = (reason == DownloadManager.PAUSED_BY_USER) ?
+                    summary = (reason == DownloadManager.PAUSED_BY_APP) ?
                             getContext().getString(R.string.download_paused) :
                             getContext().getString(R.string.download_queued);
                 }
