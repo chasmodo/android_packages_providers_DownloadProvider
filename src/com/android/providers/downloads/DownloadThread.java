@@ -314,7 +314,7 @@ public class DownloadThread implements Runnable {
                     if (f.exists() && (f.length() > 0)) {
                         Log.d(TAG, "saveRights with mimeType=" + mInfoDelta.mMimeType);
                         DownloadDrmHelper.saveRights(mContext, mInfoDelta.mFileName, mInfoDelta.mMimeType);
-                        f.delete();
+                        mContext.getContentResolver().delete(Downloads.Impl.ALL_DOWNLOADS_CONTENT_URI, " _id = " + mId, null);
                     }
                     return;
                 } else {
