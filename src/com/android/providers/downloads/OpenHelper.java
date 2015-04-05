@@ -30,6 +30,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.drm.DrmHelper;
 import android.drm.DrmManagerClientWrapper;
 import android.drm.DrmStore.Action;
 import android.drm.DrmStore.RightsStatus;
@@ -81,37 +82,24 @@ public class OpenHelper {
             final File file = getCursorFile(cursor, COLUMN_LOCAL_FILENAME);
             String mimeType = getCursorString(cursor, COLUMN_MEDIA_TYPE);
 
-            String filename = file.getName();
-            if (!TextUtils.isEmpty(filename)
-                    && (filename
-                            .endsWith(DownloadDrmHelper.EXTENSION_DRM_MESSAGE) || filename
-                            .endsWith(DownloadDrmHelper.EXTENSION_INTERNAL_DRM))) {
-                String path = file.toString();
-                int status = -1;
-                mimeType = DownloadDrmHelper.getOriginalMimeType(context, file,
-                        mimeType);
-                path = path.replace("/storage/emulated/0",
-                        "/storage/emulated/legacy");
-                DrmManagerClientWrapper drmClient = new DrmManagerClientWrapper(
-                        context);
-                if (mimeType.startsWith("image")) {
-                    status = drmClient.checkRightsStatus(path, Action.DISPLAY);
-                } else {
-                    status = drmClient.checkRightsStatus(path, Action.PLAY);
-                }
+            final Intent intent = new Intent(Intent.ACTION_VIEW);
 
-                if (RightsStatus.RIGHTS_VALID != status) {
-                    ContentValues values = drmClient.getMetadata(path);
-                    String address = values.getAsString("Rights-Issuer");
-                    Intent intent = new Intent(DownloadDrmHelper.BUY_LICENSE);
-                    intent.putExtra("DRM_FILE_PATH", address);
-                    context.sendBroadcast(intent);
-                    Log.e(TAG, "Drm License expared! can not proceed ahead");
-                    return null;
+            String path = file.getAbsolutePath();
+            if (DrmHelper.isDrmFile(path)) {
+                if (DrmHelper.validateLicense(context, path, null)) {
+                    mimeType = DrmHelper.getOriginalMimeType(context, path);
+                    if (!TextUtils.isEmpty(mimeType)) {
+                        if (mimeType.startsWith("image/")
+                                || mimeType.startsWith("video/")) {
+                            intent.setPackage("com.android.gallery3d");
+                        } else if (mimeType.startsWith("audio/")) {
+                            intent.setPackage("com.android.music");
+                        }
+                    }
+                } else {
+                    Log.w(TAG, "Drm file does not have valid license to open");
                 }
             }
-
-            final Intent intent = new Intent(Intent.ACTION_VIEW);
 
             if ("application/vnd.android.package-archive".equals(mimeType)) {
                 // PackageInstaller doesn't like content URIs, so open file

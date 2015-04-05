@@ -24,6 +24,7 @@ import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.drm.DrmHelper;
 import android.media.MediaScannerConnection;
 import android.media.MediaScannerConnection.MediaScannerConnectionClient;
 import android.net.Uri;
@@ -104,9 +105,7 @@ public class DownloadScanner implements MediaScannerConnectionClient {
         synchronized (mConnection) {
             // Drm Start
             String mimeType = null;
-            if (info.mFileName != null
-                    && (info.mFileName.endsWith(".dcf")
-                            || info.mFileName.endsWith(".dm"))) {
+            if (DrmHelper.isDrmFile(info.mFileName)) {
                 // Context context = getApplicationContext();
                 File file = new File(info.mFileName);
                 mimeType = DownloadDrmHelper.getOriginalMimeType(mContext, file, mimeType);
