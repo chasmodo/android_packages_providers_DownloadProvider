@@ -811,6 +811,7 @@ public class DownloadThread implements Runnable {
         // Defeat transparent gzip compression, since it doesn't allow us to
         // easily resume partial downloads.
         conn.setRequestProperty("Accept-Encoding", "identity");
+        conn.setRequestProperty("Connection","close");
 
         if (resuming) {
             if (mInfoDelta.mETag != null && !mInfoDelta.mETag.equals(QRD_FAKE_ETAG)) {
