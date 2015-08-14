@@ -41,7 +41,6 @@ import static java.net.HttpURLConnection.HTTP_UNAVAILABLE;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.drm.DrmHelper;
 import android.drm.DrmManagerClient;
 import android.drm.DrmOutputStream;
 import android.net.ConnectivityManager;
@@ -58,7 +57,6 @@ import android.provider.Downloads;
 import android.system.ErrnoException;
 import android.system.Os;
 import android.system.OsConstants;
-import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 
@@ -335,6 +333,7 @@ public class DownloadThread implements Runnable {
                         DownloadDrmHelper.saveRights(mContext, mInfoDelta.mFileName, mInfoDelta.mMimeType);
                         mContext.getContentResolver().delete(Downloads.Impl.ALL_DOWNLOADS_CONTENT_URI, " _id = " + mId, null);
                     }
+                    return;
                 } else {
                     mInfo.sendIntentIfRequested();
                 }
@@ -632,6 +631,7 @@ public class DownloadThread implements Runnable {
                 new File(mInfoDelta.mFileName).delete();
                 mInfoDelta.mFileName = null;
             }
+
         } else if (Downloads.Impl.isStatusSuccess(mInfoDelta.mStatus)) {
             // When success, open access if local file
             if (mInfoDelta.mFileName != null) {

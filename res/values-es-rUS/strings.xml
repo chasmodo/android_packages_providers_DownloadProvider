@@ -60,5 +60,4 @@
     <string name="download_running" msgid="3925050393361158266">"En curso"</string>
     <string name="download_error" msgid="5144180777324573236">"Error"</string>
     <string name="download_running_percent" msgid="4305080769167320204">"En curso (<xliff:g id="PERCENTAGE">%s</xliff:g>)"</string>
-    <string name="action_consumes_rights">Se agotarán los derechos para reproducir este multimedia.</string>
 </resources>
